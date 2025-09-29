@@ -1,6 +1,6 @@
 # COMP-322-CSUN
-C programs for CSUN's COMP322 class
-online fre ec compiler
+C programs for CSUN's COMP322 class<br>
+online free c compiler 
 https://www.onlinegdb.com/online_c_compiler
 
 
