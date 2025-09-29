@@ -1,6 +1,9 @@
 # COMP-322-CSUN
 C programs for CSUN's COMP322 class
 
+this branch <br>
+git@github.com:zacfrappier/COMP-322-CSUN.git <br>
+
  To create new
 git init
 
