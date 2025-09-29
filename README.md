@@ -1,5 +1,8 @@
 # COMP-322-CSUN
 C programs for CSUN's COMP322 class
+online fre ec compiler
+https://www.onlinegdb.com/online_c_compiler
+
 
 this branch <br>
 git remote add origin <remote_repo_url> <br>
