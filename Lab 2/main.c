@@ -91,11 +91,63 @@ void parameters() {
 }	
 		
 
-//************************************************************* Proc 2
+//************************************************************* Proc 2 First In First Out
 void fifo() {
-	// declare (and initilize when appropriate) local variables 
-	// for each process, reset "done" field to 0 
-	// while there are still processes to schedule 	
+	if(g_num_processes == 0 || g_processes == NULL){
+		printf("Go back to option 1\n");
+		return;
+	}
+	//local v's
+	int current_cycle = 0, scheduled_count = 0, next_process_index, i, earliest_arrival, next_arrival, found_next;
+	//reset done_flag
+	for( i = 0; i < g_num_processes; i++){
+		g_processes[i].done_flag = 0;
+	}
+	//while loop processes to schedule
+	while(scheduled_count < g_num_processes){
+		next_process_index = -1;
+		earliest_arrival = INT_MAX;
+		//find earliest arrival time
+		for(i=0; i < g_num_processes; i++){ 
+			if (g_processes[i].done_flag == 0){	// check to see if complete yet
+				if(g_processes[i].arrival_cycle <= current_cycle){  // check current cycle matches
+					if(g_processes[i].arrival_cycle < earliest_arrival){	//check that time 
+						earliest_arrival = g_processes[i].arrival_cycle;
+						next_process_index = i;
+					}
+				}
+			}
+		}
+	}
+	//scheduling of processes * pointer for structure 'shorthand' method
+	if(next_process_index != -1){
+		Process *p = &g_processes[next_process_index];
+		p->start_time = current_cycle;
+		p->end_time = p->start_time + p->total_cycle;
+		p->turnaround_time = p->end_time - p->arrival_cycle;
+		p->done_flag = 1;
+
+		current_cycle = p->end_time;
+		scheduled_count++;
+	}else{
+		next_arrival = INT_MAX;
+		found_next = 0;
+		for( i = 0; i < g_num_processes; i++){
+			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
+				next_arrival = g_processes[i].arrival_cycle;
+				found_next = 1;
+			}
+		}
+		// checks system idle time
+		if(found_next && current_cycle < next_arrival){
+			current_cycle = next_arrival;
+		}else{
+			current_cycle++;
+		}
+	}
+	print_table();
+
+ 	
 		// initilize the earliest arrival time to INT_MAX (largest integer value) 
 		// for each process not yet scheduled 
 			// check if process has earlier arrival time than current earliest and update 	
@@ -106,35 +158,92 @@ void fifo() {
 }	
 
 
-//************************************************************* Proc 3
+//************************************************************* Proc 3 Shortest Job First
 void sjf() {
-	// declare (and initilize when appropriate) local variables 
-	// for each process, reset "done" field to 0 
-	// while there are still processes to schedule 	
-		// initilize the lowest total cycle time to INT_MAX (largest integer value) 
-		// for each process not yet scheduled 
-			// check if process has lower total cycle time than current lowest and has arrival time less than current cycle time and update 	
-		// set start time, end time, turnaround time, done fields for unscheduled process with lowest (and available) total cycle time        	
-		// update current cycle time and increment number of processes scheduled 
-	// print contents of table 
+	if(g_num_processes == 0 || g_processes == NULL){
+		printf("Go back to option 1\n");
+		return;
+	}
+	int current_cycles = 0, scheduled_count = 0, i, next_process_index, lowest_cpu_time, next_arrival, found_next;
+	//reset done flag
+	for (i = 0; i < g_num_processes; i++){
+		g_processes[i].done_flag = 0;
+	}
+	while (scheduled_count < g_num_processes){ // start the cycles
+		next_process_index = -1;
+		lowest_cpu_time = INT_MAX;
+		for(i = 0; i < g_num_processes; i++){ //loop the programs 
+			if(g_processes[i].done_flag == 0){
+				if(g_processes[i].arrival_cycle <= current_cycles){
+					lowest_cpu_time = g_processes[i].total_cycle;
+					next_process_index = i;
+				}else if(g_processes[i].total_cycle == lowest_cpu_time){
+					// Tie-breaking: Use FIFO (earlier arrival) or PID (lower ID)
+                        if (g_processes[i].arrival_cycle < g_processes[next_process_index].arrival_cycle) {
+                             next_process_index = i;
+                        } else if (g_processes[i].arrival_cycle == g_processes[next_process_index].arrival_cycle && g_processes[i].id < g_processes[next_process_index].id) {
+                            next_process_index = i;
+                        }
+				}
+			}
+		}
+	}
+	//next process - should be set from previous 
+	if(next_process_index != -1){
+		Process *p = &g_processes[next_process_index];
+		p->start_time = current_cycles;
+		p->end_time = p->start_time + p->total_cycle;
+		p->turnaround_time = p->end_time - p->arrival_cycle;
+		p->done_flag = 1;
+		current_cycles = p->end_time;
+		scheduled_count++;
+	}else{
+		next_arrival = INT_MAX;
+		found_next = 0;
+		for( i=0; i < g_num_processes; i++){
+			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
+				next_arrival = g_processes[i].arrival_cycle;
+				found_next = 1;
+			}
+		}
+		if( found_next && next_arrival > current_cycles){
+			current_cycles = next_arrival;
+		}else{
+			current_cycles++;
+		}
+	}
+	print_table();
+
 	return;		
 }	
         	
 
 //************************************************************* Proc 4
 void srt() {
-	// declare (and initilize when appropriate) local variables 
-	// for each process, reset "done", "total_remaining" and "already_started" fields to 0 
-	// while there are still processes to schedule 	
-		// initilize the lowest total remaining time to INT_MAX (largest integer value) 
-		// for each process not yet scheduled 
-			// check if process has lower total remaining time than current lowest and has arrival time less than current cycle time and update 	
-		// check if process already partially-scheduled 
-			// if so, set "start time", "already_started" fields of process with lowest (and available) total remaining cycle time        	
-		// set end time, turnaround time of process with lowest (and available) total remaining cycle time 
-		// decrement total remaining time of process with lowest (and available) total remaining cycle time 
-		// if remaining time is 0, set done field to 1, increment cycle time and number of scheduled processes
-	// print contents of table 
+	if (g_num_processes == 0 || g_processes == NULL) {
+        printf("Please enter parameters first (Option 1).\n");
+        return;
+    }
+	//locals
+    int i, current_cycle = 0, scheduled_count = 0, current_process_index = -1, best_process_index, lowest_remaining;
+    // Reset all scheduling-related fields
+    for (i = 0; i < g_num_processes; i++) {
+        g_processes[i].done_flag = 0;
+        g_processes[i].total_remaining = g_processes[i].total_cycle; // Reset remaining time
+        g_processes[i].start_flag = 0;
+        g_processes[i].start_time = -1;
+        g_processes[i].end_time = -1;
+        g_processes[i].turnaround_time = -1;
+    }
+	while(scheduled_count = 0 < g_num_processes ){
+		best_process_index = -1;
+		lowest_remaining = INT_MAX;
+		for(i=0; i < g_num_processes; i++){
+			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle <= current_cycle ){
+				
+			}
+		}
+	}
 	return;		
 }	
         	
