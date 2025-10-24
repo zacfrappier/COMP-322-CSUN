@@ -225,7 +225,7 @@ void srt() {
         return;
     }
 	//locals
-    int i, current_cycle = 0, scheduled_count = 0, current_process_index = -1, best_process_index, lowest_remaining;
+    int i, current_cycle = 0, scheduled_count = 0, current_process_index = -1, best_process_index, lowest_remaining, next_arrival, found_next;
     // Reset all scheduling-related fields
     for (i = 0; i < g_num_processes; i++) {
         g_processes[i].done_flag = 0;
@@ -235,15 +235,56 @@ void srt() {
         g_processes[i].end_time = -1;
         g_processes[i].turnaround_time = -1;
     }
-	while(scheduled_count = 0 < g_num_processes ){
+	while(scheduled_count = 0 < g_num_processes ){ // start scheduling 
 		best_process_index = -1;
 		lowest_remaining = INT_MAX;
-		for(i=0; i < g_num_processes; i++){
+		for(i=0; i < g_num_processes; i++){ // find lowest remaining time
 			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle <= current_cycle ){
-				
+				if(g_processes[i].total_remaining < lowest_remaining){
+					lowest_remaining = g_processes[i].total_remaining;
+					best_process_index = i;	
+					// are these following needed?			
+				}else if(g_processes[i].total_remaining == lowest_remaining){ //tie breaker
+					if(g_processes[i].arrival_cycle < g_processes[best_process_index].arrival_cycle){
+						best_process_index = i;
+					}else if (g_processes[i].arrival_cycle == g_processes[best_process_index].arrival_cycle && g_processes[i].id < g_processes[best_process_index].id){
+						best_process_index = i;
+					}
+				}				
+			}
+		}
+		if(best_process_index != -1){ //execute or advance time
+			Process *p = &g_processes[best_process_index]; // a process is selected
+			if(p->start_flag ==0){ //set flag if its ran
+				p->start_time = current_cycle;
+				p->start_flag = 1;
+			}
+			//remove number from list and increase cycle
+			p->total_remaining--;
+			current_cycle++;
+			if (p->total_remaining == 0){
+				p->end_time = current_cycle;
+				p->turnaround_time = p->end_time - p->arrival_cycle;
+				p->done_flag =1;
+				scheduled_count++;
+			}
+		}else{ //no processes ready, go to next
+			next_arrival = INT_MAX;
+			found_next = 0;
+			for( i = 0; i<g_num_processes;i++){
+				if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
+					next_arrival = g_processes[i].arrival_cycle;
+					found_next = 1;
+				}
+			}
+			if(found_next){
+				current_cycle = next_arrival; //jump
+			}else{
+				break; // no other processes to do, break loop
 			}
 		}
 	}
+	print_table();
 	return;		
 }	
         	
@@ -251,6 +292,14 @@ void srt() {
 //*************************************************************
 void exit_free_mem() {
 	// free the schedule table if not NULL 
+	if(g_processes != NULL){
+		free(g_processes); // free() - deallocates memory
+		g_processes = NULL;
+		g_num_processes = 0;
+		printf(" Deallocating memory and exiting... \n");
+	}else{
+		printf("no memory to deallocate, just exiting...\n");
+	}
 	return;
 }
 
