@@ -94,14 +94,17 @@ void parameters() {
 //************************************************************* Proc 2 First In First Out
 void fifo() {
 	if(g_num_processes == 0 || g_processes == NULL){
-		printf("Go back to option 1\n");
+		printf("Go back to option 1 and create processes \n");
 		return;
 	}
 	//local v's
 	int current_cycle = 0, scheduled_count = 0, next_process_index, i, earliest_arrival, next_arrival, found_next;
-	//reset done_flag
+	//reset done_flag and times
 	for( i = 0; i < g_num_processes; i++){
 		g_processes[i].done_flag = 0;
+		g_processes[i].start_time = -1;
+        g_processes[i].end_time = -1;
+        g_processes[i].turnaround_time = -1;
 	}
 	//while loop processes to schedule
 	while(scheduled_count < g_num_processes){
@@ -118,42 +121,36 @@ void fifo() {
 				}
 			}
 		}
-	}
+	
 	//scheduling of processes * pointer for structure 'shorthand' method
-	if(next_process_index != -1){
-		Process *p = &g_processes[next_process_index];
-		p->start_time = current_cycle;
-		p->end_time = p->start_time + p->total_cycle;
-		p->turnaround_time = p->end_time - p->arrival_cycle;
-		p->done_flag = 1;
+		if(next_process_index != -1){
+			Process *p = &g_processes[next_process_index];
+			p->start_time = find_max(p->arrival_cycle,current_cycle); //find max goes here
+			p->end_time = p->start_time + p->total_cycle;
+			p->turnaround_time = p->end_time - p->arrival_cycle;
+			p->done_flag = 1;
 
-		current_cycle = p->end_time;
-		scheduled_count++;
-	}else{
-		next_arrival = INT_MAX;
-		found_next = 0;
-		for( i = 0; i < g_num_processes; i++){
-			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
-				next_arrival = g_processes[i].arrival_cycle;
-				found_next = 1;
-			}
-		}
-		// checks system idle time
-		if(found_next && current_cycle < next_arrival){
-			current_cycle = next_arrival;
+			current_cycle = p->end_time;
+			scheduled_count++;
 		}else{
-			current_cycle++;
+			next_arrival = INT_MAX;
+			found_next = 0;
+			//find next process to run check done flag and check arrival
+			for( i = 0; i < g_num_processes; i++){
+				if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
+					next_arrival = g_processes[i].arrival_cycle;
+					found_next = 1;
+				}
+			}
+			// checks system idle time
+			if(found_next && current_cycle < next_arrival){
+				current_cycle = next_arrival; //skip to next arrival cycle
+			}else{
+				break;
+			}
 		}
 	}
 	print_table();
-
- 	
-		// initilize the earliest arrival time to INT_MAX (largest integer value) 
-		// for each process not yet scheduled 
-			// check if process has earlier arrival time than current earliest and update 	
-		// set start time, end time, turnaround time, done fields for unscheduled process with earliest arrival time        	
-		// update current cycle time and increment number of processes scheduled 
-	// print contents of table 
 	return;		
 }	
 
@@ -161,7 +158,7 @@ void fifo() {
 //************************************************************* Proc 3 Shortest Job First
 void sjf() {
 	if(g_num_processes == 0 || g_processes == NULL){
-		printf("Go back to option 1\n");
+		printf("Go back to option, no processes have been created 1\n");
 		return;
 	}
 	int current_cycles = 0, scheduled_count = 0, i, next_process_index, lowest_cpu_time, next_arrival, found_next;
@@ -173,7 +170,7 @@ void sjf() {
 		next_process_index = -1;
 		lowest_cpu_time = INT_MAX;
 		for(i = 0; i < g_num_processes; i++){ //loop the programs 
-			if(g_processes[i].done_flag == 0){
+			if(g_processes[i].done_flag == 0){ //done flag to see active process
 				if(g_processes[i].arrival_cycle <= current_cycles){
 					lowest_cpu_time = g_processes[i].total_cycle;
 					next_process_index = i;
@@ -187,38 +184,39 @@ void sjf() {
 				}
 			}
 		}
-	}
+	
 	//next process - should be set from previous 
-	if(next_process_index != -1){
-		Process *p = &g_processes[next_process_index];
-		p->start_time = current_cycles;
-		p->end_time = p->start_time + p->total_cycle;
-		p->turnaround_time = p->end_time - p->arrival_cycle;
-		p->done_flag = 1;
-		current_cycles = p->end_time;
-		scheduled_count++;
-	}else{
-		next_arrival = INT_MAX;
-		found_next = 0;
-		for( i=0; i < g_num_processes; i++){
-			if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
-				next_arrival = g_processes[i].arrival_cycle;
-				found_next = 1;
-			}
-		}
-		if( found_next && next_arrival > current_cycles){
-			current_cycles = next_arrival;
+		if(next_process_index != -1){
+			Process *p = &g_processes[next_process_index];
+			p->start_time = find_max(p->arrival_cycle, current_cycles);
+			p->end_time = p->start_time + p->total_cycle;
+			p->turnaround_time = p->end_time - p->arrival_cycle;
+			p->done_flag = 1;
+			current_cycles = p->end_time;
+			scheduled_count++;
 		}else{
-			current_cycles++;
+			next_arrival = INT_MAX;
+			found_next = 0;
+			//find next process to run by comparing arrival and done flag
+			for( i=0; i < g_num_processes; i++){
+				if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
+					next_arrival = g_processes[i].arrival_cycle;
+					found_next = 1;
+				}
+			}
+			if( found_next && next_arrival > current_cycles){
+				current_cycles = next_arrival;
+			}else{
+				break;
+			}
 		}
 	}
 	print_table();
-
 	return;		
 }	
         	
 
-//************************************************************* Proc 4
+//************************************************************* Proc 4 SRT shortest remaining time
 void srt() {
 	if (g_num_processes == 0 || g_processes == NULL) {
         printf("Please enter parameters first (Option 1).\n");
@@ -235,7 +233,7 @@ void srt() {
         g_processes[i].end_time = -1;
         g_processes[i].turnaround_time = -1;
     }
-	while(scheduled_count = 0 < g_num_processes ){ // start scheduling 
+	while(scheduled_count < g_num_processes ){ // start scheduling 
 		best_process_index = -1;
 		lowest_remaining = INT_MAX;
 		for(i=0; i < g_num_processes; i++){ // find lowest remaining time
@@ -272,6 +270,7 @@ void srt() {
 			next_arrival = INT_MAX;
 			found_next = 0;
 			for( i = 0; i<g_num_processes;i++){
+				//compare arrivals and done flag to find next
 				if(g_processes[i].done_flag == 0 && g_processes[i].arrival_cycle < next_arrival){
 					next_arrival = g_processes[i].arrival_cycle;
 					found_next = 1;
@@ -289,7 +288,7 @@ void srt() {
 }	
         	
 
-//*************************************************************
+//************************************************************* Exit
 void exit_free_mem() {
 	// free the schedule table if not NULL 
 	if(g_processes != NULL){
@@ -304,7 +303,7 @@ void exit_free_mem() {
 }
 
 
-//*************************************************************
+//************************************************************* Main
 int main() {
     printf("Welcome to Lab2! \n Objective: show common scheduling algorithms FIFO, SJF, and SRT\n");
 	// declare local vars 
@@ -315,7 +314,7 @@ int main() {
         printf("2) Schedule processes with FIFO algorithm \n");
         printf("3) Schedule processes with SJF algorithm \n");
         printf("4) Schedule processes with SRT algorithm  \n");
-		printf("5) Exit & free mem");
+		printf("5) Exit & free mem\n");
 		scanf("%d", &choice);
 
 		switch(choice){
@@ -338,7 +337,10 @@ int main() {
 			case 5:
 				printf("you selected to exit\n");
 				exit_free_mem();
-				exit(0);			
+				exit(0);
+			default:
+				printf(" Invalid selection. please enter a number 1-5.\n");
+				break;			
 		}
 
     }while(choice != 5);
