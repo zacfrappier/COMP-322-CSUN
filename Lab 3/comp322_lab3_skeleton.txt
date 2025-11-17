@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Declare dynamic arrays/vectors and global variables
+
+
+//*********************************************************
+void "PROCEDURE TO PRINT VECTOR"(int *vector, char *title) {
+	// declare local variables 
+	// for loop j: print each resource index 
+	// for loop j: print value of vector[j] 
+	return;
+}
+
+//*************************************************************
+void "PROCEDURE TO PRINT MATRIX"(int *matrix, char *title) { 
+	// declare local variables 
+	// for loop j: print each resource index 
+	// for each process i: 
+		// for each resource j: 
+			// print value of matrix[i,j]
+	return;
+}
+
+
+//**************************************************************
+void "OPTION #1"() {
+	// declare local variables 
+	// prompt for number of resources 
+	// allocate memory for vectors 
+	// for each resource, prompt for number of units, set resource and available vectors indices
+	// prompt for number of processes
+	// allocate memory for arrays
+	// for each process, for each resource, prompt for maximum number of units requested by process, update maxclaim and need arrays  
+	// for each process, for each resource, prompt for number of resource units allocated to process 
+	// print resource vector, available vector, maxclaim array, allocated array, need array 
+	return;
+}
+
+
+//**************************************************************
+void "OPTION #2"() {
+	// declare local variables
+	// prompt for process, resource, and number of units requested
+	// if enough units available and request is less than need
+		// reduce number of available units
+		// increase number of allocated units
+		// reduce number of needed units
+		// print updated available, allocated, and need vectors/matrices
+	// else
+		print message that request was denied
+	return;
+}
+
+
+//**************************************************************
+void "OPTION #3"() {
+	// declare local variables
+	// prompt for process, resource, and number of units requested
+	// if enough units allocated
+		// increase number of available units
+		// reduce number of allocated units
+		// increase number of needed units
+		// print updated available, allocated, and need vectors/matrices
+	// else
+		print message that release cannot be performed
+	return;
+}
+
+
+//******************************************************************
+void "OPTION #4"() {
+
+	// declare local variables
+	// while not all processes are processed
+		// for each process  
+			// if process has not been processed yet 	 
+				// print message comparing need vector with available vector
+				// for each resource 
+					// check for safe processing by comparing process' need vector to available vector 
+	      			// if each resource is available 
+					// print message that process can be processed
+					// update number of available units of resource 
+					// for each resource 
+						free all resources allocated to process 
+						// increment number of sequenced processes 
+				// else print message that process cannot be processed
+	//if (no process was processed in the final round of the for-loop)
+		// print message of deadlock among processes not processed
+	// else print safe sequence of processes
+	return;
+}
+
+
+//******************************************************************
+void "OPTION #5"() {
+	// check if vectors/array are not NULL--if so, free each vector/array 	);
+	return;
+}
+
+
+//*************************************************************
+int main() {
+	// declare local vars 
+	// while user has not chosen to quit 
+		// print menu of options 
+		// prompt for menu selection 
+		// call appropriate procedure based on choice--use switch statement or series of if, else if, else statements 	
+	} // while loop 
+	 return 1; // indicates success 
+} // end of procedure 
