@@ -5,6 +5,7 @@ Lab 3
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 // Declare dynamic arrays/vectors and global variables
 int placeholder = INT_MIN;   //just used for things i need to change later
@@ -158,23 +159,23 @@ int main() {
 
         switch(choice){
             case 1:
-                prtinf("you've selected to enter claim graph of resources needed\n");
+                printf("you've selected to enter claim graph of resources needed\n");
                 claim_graph();
                 break;
             case 2:
-                prtinf("you've selected to request resources\n");
+                printf("you've selected to request resources\n");
                 request_resources();
                 break;
             case 3:
-                prtinf("you've selected to enter claim graph of resources needed\n");
+                printf("you've selected to enter claim graph of resources needed\n");
                 release_resources();
                 break;
             case 4:
-                prtinf("you've selected to enter claim graph of resources needed\n");
+                printf("you've selected to enter claim graph of resources needed\n");
                 safe_check();
                 break;
             case 5:
-                prtinf("you've selected to enter claim graph of resources needed\n");
+                printf("you've selected to enter claim graph of resources needed\n");
                 exit_free_mem();
                 break;
             default:
