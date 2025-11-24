@@ -6,10 +6,29 @@ Lab 3
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <stdbool.h>
 
 // Declare dynamic arrays/vectors and global variables
 int placeholder = INT_MIN;   //just used for things i GraphNeed to change later
 #define MAX_VERTICES 5 // 5x5 matrix
+int size = 5;   // might use this if other method doesnt work
+/*
+resources 2 x r matrix OR vector
+available 2 x r matrix OR vector
+GraphAllocated p x r matrix 
+GraphNeed p x r matrix
+*/
+
+int *resources = NULL; //vector / array
+int *available = NULL; //
+int **allocated = NULL; // double ** used for matrix
+int **max_claim = NULL;
+int **need = NULL;
+
+//initialize resource and process
+int num_resources = 0;
+int num_processes = 0;
+
 
 //make graph
 typedef struct GraphType {
@@ -26,23 +45,6 @@ void initialize_graph(GraphType* g, int vertices){
         }
     }
 }
-
-/*
-resources 2 x r matrix OR vector
-
-available 2 x r matrix OR vector
-
-GraphAllocated p x r matrix 
-
-GraphNeed p x r matrix
-
-*/
-int *resources;
-int *available;
-int size = 5;
-
-resources =(int *)malloc(size * sizeof(int));
-resources =(MAX_VERTICES *)malloc(MAX_VERTICES * sizeof(MAX_VERTICES));
 
 typedef struct GraphAllocated{
 	int n;
@@ -74,102 +76,297 @@ void initialize_graph(GraphNeed* g, int vertices){
 
 
 //*********************************************************
-void print_vector(int *vector, char *title) {
+void print_vector(int *vector, int vector_type) { // vector_type 0: resources, 1: available
 	// declare local variables 
-	// for loop j: print each resource index 
-    for (int j; j < placeholder; j++){
+	// for loop j: print each resource index
+	if(vector_type = 0){
+		printf("Resources: ");
+	} else {
+		printf("Available: ");
+	}
 
-    }
-	// for loop j: print value of vector[j] 
-        for (int j; j < placeholder; j++){
-
-    }
-	return;
+	for (int j = 0; j < num_resources; j++){
+		printf("r%d", j); // printf the r0- rn
+	}
+	printf("\n    ");
+		for (int j = 0; j < num_resources; j++){
+		printf("r%d", vector[j]); // prints amount
+	}
+	printf("\n");
 }
 
 //*************************************************************
-void print_matrix(int *matrix, char *title) { 
+void print_matrix(int **matrix, int matrix_type) {// 0: max_claim 1: allocated 2: need ** for matrices (pointers for and column)
 	// declare local variables 
+	if(matrix_type == 0){
+		printf("Max Claim:");
+	}else if(matrix_type == 1){
+		printf("Allocated:");
+	}else{
+		printf("Need:");
+	}
 	// for loop j: print each resource index 
+	for(int j = 0; j < num_resources; j++){ // prints r0 - rn (resource number)
+		printf("r%d", j);
+	}
+	printf("/n");
 	// for each process i: 
 		// for each resource j: 
-			// print value of matrix[i,j]
-	return;
+			// print value of matrix[i,j]	
+	for(int i = 0; i < num_processes; i++){ // prints p0-pn (process number), and need resources for each
+		printf("p%d", i);
+		for(int j = 0; j < num_processes; j++){
+			printf("%3d", matrix[i][j]);
+		}
+		printf("\n");
+	}
 }
 
 
 //**************************************************************
 void claim_graph() {
+	printf("");
 	// declare local variables 
 	// prompt for number of resources 
-	// allocate memory for vectors 
+	printf("Enter number of resources (n for r0- rn): ");
+	scanf("%d", &num_processes);
+	// allocate memory for vectors
+	resources = (int *)malloc(num_resources * sizeof(int)); 
+	available = (int *)malloc(num_resources * sizeof(int)); 			//both set
 	// for each resource, prompt for number of units, set resource and available vectors indices
+	printf("Enter Number of units for resources (r0 to r%d): ", num_resources - 1);
+	for (int j = 0; j < num_resources; j++){
+		for (int j = 0; j < num_resources; j++){
+			scanf("%d", &resources[j]);
+			available[j] = resources[j];
+		}
+	}
 	// prompt for number of processes
+	printf(" Enter number of processes: ");
+	scanf("%d", &num_processes);
+
 	// allocate memory for arrays
+	max_claim = (int **)malloc(num_processes * sizeof(int *));
+	allocated = (int **)malloc(num_processes * sizeof(int *));
+	need = (int **)malloc(num_processes * sizeof(int *));
 	// for each process, for each resource, prompt for maximum number of units requested by process, update maxclaim and GraphNeed arrays  
-	// for each process, for each resource, prompt for number of resource units GraphAllocated to process 
-	// print resource vector, available vector, maxclaim array, GraphAllocated array, GraphNeed array 
-	return;
+	for (int i = 0; i < num_processes; i++){
+		printf("Enter number of allocations for each resource (r0 to r%d) for process p%d", num_resources -1, i);
+		// for each process, for each resource, prompt for number of resource units GraphAllocated to process 
+		for (int j= 0; j < num_processes; j++){
+			scanf("%d", &allocated[i][j]);
+			available[j] -= allocated[i][j]; // available amount per resource per index
+			need[i][j] = max_claim[i][j] - allocated[i][j];
+		}
+	}
+	// print resource vector, available vector, maxclaim array, GraphAllocated array, GraphNeed array
+	print_vector(resources, 0);
+	print_vector(available, 1); 
+	print_matrix(max_claim, 0);
+	print_matrix(allocated, 1);
+	print_matrix(need, 2); 	
 }
 
 
 //**************************************************************
 void request_resources() {
 	// declare local variables
+	int process, resource, units;
 	// prompt for process, resource, and number of units requested
+    printf("Enter requesting process: p");
+	scanf("%d", &process);
+    printf("Enter requesting resource: p");
+	scanf("%d", &resource);
+    printf("Enter number of resources process p%d is requesting from resource r%d", process, resources);
+	scanf("%d", &units);
 	// if enough units available and request is less than GraphNeed
+	if (process < 0 || process >= num_processes || resources < 0 || resource >= num_resources){
+		printf("invalid number of process or resource requested\n");
+		return;
+	}
+	if(units > need[process][resource]){
+		printf("Error: Process has exceeded maximum available resource (claim)\n");
+		return;
+	}
+	if(units > available[resource]){
+		printf("resources not available.");
+		return;
+	}
 		// reduce number of available units
+		available[resource] -= units;
 		// increase number of GraphAllocated units
+		allocated[process][resource] += units;
 		// reduce number of GraphNeeded units
+		need[process][resource] -= units;
+
 		// print updated available, GraphAllocated, and GraphNeed vectors/matrices
+		print_vector(available, 1);
+		print_matrix(allocated, 1);
+		print_matrix(need, 2);
 	// else
 		//print message that request was denied
-	return;
 }
 
 
 //**************************************************************
 void release_resources() {
 	// declare local variables
+	int process, resource, units;
+
 	// prompt for process, resource, and number of units requested
+	printf("Enter releasing processor: p");
+	scanf("%d", &process);
+	printf("Enter resource to be released: r");
+	scanf("%d", &resource);
+	printf("Enter amount process p%d will release from resource r%d: ", process, resource);
+	scanf("%d", &units);
+	
+	//safety check 
+	if (process <0 || process >= num_processes || resource < 0 || resource >= num_resources){
+		printf("Error: you've entered incorrect number for process or resource that is out of bounds");
+		return;
+	}
 	// if enough units GraphAllocated
+	if(units > allocated[process][resource]){
+		printf("Error: no units are available to allocate\n");
+		return;
+	}else{
 		// increase number of available units
+		available[resource] += units;
 		// reduce number of GraphAllocated units
+		allocated[process][resource] -= units;
 		// increase number of GraphNeeded units
+		need[process][resource] += units;
 		// print updated available, GraphAllocated, and GraphNeed vectors/matrices
-	// else
-		//print message that release cannot be performed
-	return;
+		print_vector(available, 1);
+		print_matrix(allocated, 1);
+		print_matrix(need, 2);
+	}
 }
 
 
 //******************************************************************
 void safe_check() {
-
 	// declare local variables
+	int *work = (int *)malloc(num_resources * sizeof(int));
+	bool *finish = (bool *)malloc(num_processes * sizeof(bool));
+	int *safe_sequence = (int *)malloc(num_processes * sizeof(int));
+	int count = 0;
+	int pass = 0; 
+	//initialize 
+	for(int j = 0; j < num_resources; j++){
+		work[j] = available[j];
+	}
+	for( int i = 0; i < num_processes; i++){
+		finish[i] = false; 
+	}
 	// while not all processes are processed
-		// for each process  
-			// if process has not been processed yet 	 
+	while (count < num_processes){
+		bool found = false;
+		// for each process
+		for (int i = 0; i < num_processes; i++){
+			// if process has not been processed yet 
+			if (!finish[i]){
 				// print message comparing GraphNeed vector with available vector
+				printf("Comparing Graphneed with available vector: <");
 				// for each resource 
+				for(int j = 0; j < num_resources; j++){
+					printf(" %d", need[i][j]);
+				}
+				printf(" > <= <");
+				for(int j = 0; j < num_resources; j++){
+					printf(" %d", work[j]);
+				}
+				printf(" > : ");
 					// check for safe processing by comparing process' GraphNeed vector to available vector 
-	      			// if each resource is available 
-					// print message that process can be processed
-					// update number of available units of resource 
-					// for each resource 
-						//free all resources GraphAllocated to process 
-						// increment number of sequenced processes 
-				// else print message that process cannot be processed
+					bool can_proceed = true;
+					for (int j = 0; j < num_resources; j++){
+						if (need[i][j] > work[j]){
+							can_proceed = false;
+							break;
+						}
+					}
+	      			// if each resource is available
+					if(can_proceed){
+						printf("Process p%d can be processed\n", i); // print message that process can be processed
+						// update number of available units of resource
+						for (int j = 0; j < num_resources; j++){
+							work[j] += allocated[i][j];
+						} 
+
+						safe_sequence[count++] = i;
+						finish[i] = true; 
+						found = true;
+					} else{
+						// else print message that process cannot be processed
+						printf("process p%d cannot be processed");
+					}
+			}
+		}
+		if(!found){
+			printf("Deadlock is present in system. \n");
+			// print message of deadlock among processes not processed
+			printf("Processes currently in deadlock:");
+			for(int i = 0; i < num_processes; i++){
+				if(!finish[i]){
+					printf("p%d", i);
+				}
+			}
+			printf("\n");
+			//free local memory
+			free(work);
+			free(finish);
+			free(safe_sequence);
+			return;
+		}
+		pass++;
+	}			
 	//if (no process was processed in the final round of the for-loop)
-		// print message of deadlock among processes not processed
 	// else print safe sequence of processes
-	return;
+	printf("Safe processes not in deadlock:");
+	for(int i = 0; i < num_processes; i++){
+		printf(" p %d", safe_sequence[i]);
+	}
+	printf("\n");
+	//free local memory
+	free(work);
+	free(finish);
+	free(safe_sequence);
 }
 
 
 //******************************************************************
 void exit_free_mem() {
 	// check if vectors/array are not NULL--if so, free each vector/array 	);
+	// to be checked : VECTORS available, resources,  MATRICIES allocated, max_claim, need
+	//VECTORS
+	if(available != NULL){
+		free(available);
+		available = NULL;
+	}
+	if(resources != NULL){
+		free(resources);
+		resources = NULL;
+	}
+	//MATRICIES (needs loop for values)
+	if (allocated != NULL){
+		for (int i = 0; i < num_processes; i++){ // loop to free each value
+			if(allocated[i] != NULL){
+				free(allocated);
+			}
+		}
+		free(allocated); // free main space									// EXPLAIN THIS MORE
+		allocated = NULL;
+	}
+
+	if (need != NULL){
+		for(int i = 0; i < num_processes; i++){
+			if(need[i] != NULL)
+				free(need[i]);
+		}
+		free(need);
+		need = NULL;
+	}
 	return;
 }
 
@@ -185,7 +382,7 @@ int main() {
     int choice;
 	// while user has not chosen to quit 
     do{
-        printf("--- Menu --- \n");
+        printf("---- Menu (Banker's Algorithm) ---- \n");
         printf("1) Enter Claim graph (GraphNeed) \n"); 
         printf("2) Request resource (request)\n"); 
         printf("3) Release resource (allocation)\n"); 
@@ -223,5 +420,5 @@ int main() {
 		// prompt for menu selection 
 		// call appropriate procedure based on choice--use switch statement or series of if, else if, else statements 	
 	 // while loop 
-	 return 1; // indicates success 
+	 return 0; // indicates success 
 } // end of procedure 
